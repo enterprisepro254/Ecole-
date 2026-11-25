@@ -936,7 +936,9 @@
       'Class Teacher',
       'Subject Teacher',
       'Accountant',
-      'Parent'
+      'Parent',
+      'HOD Department',
+      'Deputy Head Teacher'
     ];
 
     const ALL_PERMISSIONS = [
@@ -1404,6 +1406,10 @@
           return ['manage_lesson_plans', 'enter_scoresheets', 'send_chats'];
         case 'Accountant':
           return ['manage_students', 'manage_fees', 'download_reports', 'send_chats'];
+        case 'Deputy Head Teacher':
+          return ['manage_students', 'manage_staff', 'manage_fees', 'manage_timetables', 'manage_lesson_plans', 'reconcile_marks', 'download_reports', 'send_chats'];
+        case 'HOD Department':
+          return ['manage_staff', 'manage_lesson_plans', 'download_reports', 'send_chats'];
         case 'Parent':
         default:
           return ['download_reports', 'send_chats'];
@@ -1702,37 +1708,142 @@
     }
 
     function getNavItemsForRole(role) {
-      const items = [
-        { id: 'dashboard', label: 'Dashboard', icon: '📊' },
-        { id: 'students', label: 'Students (680)', icon: '🎓' },
-        { id: 'staff', label: 'Staff Directory', icon: '👥' },
-        { id: 'timetable', label: 'Timetable', icon: '🗓️' },
-        { id: 'lessonPlans', label: 'Lesson Plans', icon: '📘' },
-        { id: 'fees', label: 'Fees & Receipts', icon: '🧾' },
-        { id: 'exams', label: 'CBC Exams & Reports', icon: '📝' }
-      ];
-
-      if (role === 'Headteacher' || role === 'Academic Master') {
-        items.splice(3, 0, { id: 'teachersMgmt', label: 'Teachers Management', icon: '👩‍🏫' });
-      }
-
-      if (role === 'Admin') {
-        items.push({ id: 'users', label: 'Users & Permissions', icon: '🔐' });
-      }
-
-      if (role === 'Admin' || role === 'Headteacher') {
-        items.push({ id: 'settings', label: 'Settings & Stamps', icon: '⚙️' });
-      }
-
-      items.push({ id: 'profile', label: 'My Profile', icon: '👤' });
-      items.push({
+      const item = (id, label, icon) => ({ id, label, icon });
+      const unread = {
         id: 'notifications',
         label: 'Notifications & Chats',
         icon: '🔔',
         unread: (db.notifications || []).filter(n => !n.read).length
-      });
+      };
 
-      return items;
+      const menus = {
+        'Headteacher': [
+          item('dashboard', 'Dashboard', '📊'),
+          item('profile', 'My Profile', '👤'),
+          item('staff', 'Staff Directory', '👥'),
+          item('classrooms', 'Classrooms Management', '🏫'),
+          item('students', 'Students Directory', '🎓'),
+          item('timetable', 'Timetable', '🗓️'),
+          item('lessonPlans', 'Lesson Plans', '📘'),
+          item('fees', 'Fees', '🧾'),
+          item('feeStructure', 'Fees Structure', '📑'),
+          item('exams', 'CBC Exams', '📝'),
+          item('inventory', 'Inventory', '📦'),
+          item('reports', 'Reports', '📈'),
+          item('events', 'Co-curriculum Activities / Events', '🏆'),
+          unread
+        ],
+        'Academic Master': [
+          item('dashboard', 'Dashboard', '📊'),
+          item('profile', 'My Profile', '👤'),
+          item('staff', 'Staff Directory', '👥'),
+          item('timetable', 'Timetable', '🗓️'),
+          item('lessonPlans', 'Lesson Plans', '📘'),
+          item('exams', 'CBC Exams', '📝'),
+          item('reports', 'Reports', '📈'),
+          unread
+        ],
+        'Class Teacher': [
+          item('dashboard', 'Dashboard', '📊'),
+          item('profile', 'My Profile', '👤'),
+          item('classrooms', 'My Classrooms', '🏫'),
+          item('students', 'My Students Directory', '🎓'),
+          item('timetable', 'My Class Timetable', '🗓️'),
+          item('lessonPlans', 'Class Lesson Plans', '📘'),
+          item('exams', 'CBC Exams', '📝'),
+          item('reports', 'Reports', '📈'),
+          item('events', 'Co-curriculum Activities / Events', '🏆'),
+          unread
+        ],
+        'Subject Teacher': [
+          item('dashboard', 'Dashboard', '📊'),
+          item('profile', 'My Profile', '👤'),
+          item('timetable', 'Timetable', '🗓️'),
+          item('lessonPlans', 'Lesson Plans', '📘'),
+          item('exams', 'CBC Exams', '📝'),
+          item('reports', 'Reports', '📈'),
+          unread
+        ],
+        'Parent': [
+          item('dashboard', 'Dashboard', '📊'),
+          item('profile', 'My Profile', '👤'),
+          item('classrooms', 'Classrooms Details', '🏫'),
+          item('timetable', 'Timetable', '🗓️'),
+          item('lessonPlans', 'Lesson Plans', '📘'),
+          item('fees', 'Fees Payment Summary', '🧾'),
+          item('reports', 'Reports', '📈'),
+          item('events', 'Co-curriculum Activities / Events', '🏆'),
+          unread
+        ],
+        'HOD Department': [
+          item('dashboard', 'Dashboard', '📊'),
+          item('profile', 'My Profile', '👤'),
+          item('departmentTeam', 'Department Team', '👥'),
+          item('departmentEvents', 'Department Activities / Events', '📅'),
+          item('inventory', 'Inventory', '📦'),
+          item('reports', 'Reports', '📈'),
+          unread
+        ],
+        'Accountant': [
+          item('dashboard', 'Dashboard', '📊'),
+          item('profile', 'My Profile', '👤'),
+          item('fees', 'Fees', '🧾'),
+          item('feeStructure', 'Fees Structure', '📑'),
+          item('inventory', 'Inventory', '📦'),
+          item('reports', 'Reports', '📈'),
+          unread
+        ],
+        'Deputy Head Teacher': [
+          item('dashboard', 'Dashboard', '📊'),
+          item('profile', 'My Profile', '👤'),
+          item('staff', 'Staff Directory', '👥'),
+          item('timetable', 'Timetable', '🗓️'),
+          item('lessonPlans', 'Lesson Plans', '📘'),
+          item('fees', 'Fees', '🧾'),
+          item('feeStructure', 'Fees Structure', '📑'),
+          item('exams', 'CBC Exams', '📝'),
+          item('inventory', 'Inventory', '📦'),
+          item('reports', 'Reports', '📈'),
+          item('events', 'Co-curriculum Activities / Events', '🏆'),
+          unread
+        ]
+      };
+
+      if (role === 'Admin') {
+        return [
+          item('dashboard', 'Dashboard', '📊'),
+          item('students', 'Students (680)', '🎓'),
+          item('staff', 'Staff Directory', '👥'),
+          item('teachersMgmt', 'Teachers Management', '👩‍🏫'),
+          item('timetable', 'Timetable', '🗓️'),
+          item('lessonPlans', 'Lesson Plans', '📘'),
+          item('fees', 'Fees & Receipts', '🧾'),
+          item('exams', 'CBC Exams & Reports', '📝'),
+          item('users', 'Users & Permissions', '🔐'),
+          item('settings', 'Settings & Stamps', '⚙️'),
+          item('profile', 'My Profile', '👤'),
+          unread
+        ];
+      }
+      return menus[role] || menus['Parent'];
+    }
+
+    function renderFeaturePage(title, description) {
+      return `
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">${esc(title)}</h2>
+            <span class="badge info">${esc(db.activeRole)}</span>
+          </div>
+          <p class="muted" style="margin:0 0 14px">${esc(description)}</p>
+          <div class="card" style="background:var(--surface-alt);box-shadow:none;margin:0">
+            <strong>Module workspace</strong>
+            <p class="muted" style="margin:6px 0 0;font-size:13px">
+              This menu has been added to the role dashboard. Its dedicated records and management tools can be connected here without changing the other Ecole+ modules.
+            </p>
+          </div>
+        </div>
+      `;
     }
 
     function renderLoginScreen() {
@@ -1808,12 +1919,6 @@
               >${loginShowPassword ? '🙈' : '👁️'}</button>
             </div>
 
-            <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
-              <button type="button" id="openForgotPasswordHelpBtn" class="login-quick-link-btn" style="font-size:12.5px;color:#1d4ed8">
-                Forgot Password?
-              </button>
-            </div>
-
             <div class="login-options-row">
               <label style="display:inline-flex;align-items:center;gap:7px;cursor:pointer;color:#334155;font-weight:500">
                 <input type="checkbox" id="loginRememberMe" ${loginRememberMe ? 'checked' : ''} />
@@ -1824,17 +1929,12 @@
 
             <button type="submit" class="login-submit-btn">LOGIN</button>
 
-            <div class="login-quick-links">
-              <button type="button" id="quickLoginStudentBtn" class="login-quick-link-btn">Login as Student / Parent</button>
-              <span style="color:#cbd5e1">|</span>
-              <button type="button" id="quickLoginStaffBtn" class="login-quick-link-btn">Login as Staff</button>
-            </div>
-          </form>
+            </form>
 
           <div class="login-footer">
             ${esc(db.schoolName || 'Ecole+ Kenya')} | © 2026 |
-            <a href="#" id="loginPrivacyLink">Privacy Policy</a> |
-            <a href="#" id="loginNeedHelpBtn">Need Help?</a>
+            <a href="#" id="loginPrivacyLink">Privacy Policy</a>
+            
           </div>
         </div>
       `;
@@ -3925,6 +4025,20 @@
           return renderStaffPage();
         case 'teachersMgmt':
           return renderTeachersManagementPage();
+        case 'classrooms':
+          return renderFeaturePage('Classrooms Management', 'View and manage classroom details, class streams, and classroom assignments.');
+        case 'feeStructure':
+          return renderFeaturePage('Fees Structure', 'View and manage the school fee structure by grade group and term.');
+        case 'inventory':
+          return renderFeaturePage('Inventory', 'Manage school assets, learning materials, equipment, stock records, and issue tracking.');
+        case 'events':
+          return renderFeaturePage('Co-curriculum Activities / Events', 'View and coordinate sports, clubs, festivals, competitions, and other co-curricular activities.');
+        case 'departmentTeam':
+          return renderFeaturePage('Department Team', 'View department members, roles, subject allocations, and team information.');
+        case 'departmentEvents':
+          return renderFeaturePage('Department Activities / Events', 'Plan and track department meetings, activities, targets, and events.');
+        case 'reports':
+          return renderFeaturePage('Reports', 'Access role-relevant academic, administrative, finance, and school reports.');
         case 'timetable':
           return renderTimetablePage();
         case 'lessonPlans':
@@ -4953,6 +5067,224 @@ Learners demonstrate CBC core values in class.</textarea>
       attachEvents();
       render();
     });
+  </script>
+  <script>
+/* ===== Ecole+ upgrade module: registration, inventory+invoices, homework, digital ID, data admin ===== */
+(function(){
+['departments','inventory','invoices','homework'].forEach(k=>{if(!Array.isArray(db[k]))db[k]=[];});
+if(!db.photos)db.photos={};
+const R=(...a)=>a, uid=p=>p+Date.now().toString(36)+Math.random().toString(36).slice(2,5);
+const ROLES={stu:R('Admin','Headteacher','Deputy Head Teacher','Accountant'),tea:R('Admin','Headteacher','Deputy Head Teacher','HOD Department'),
+ dep:R('Admin','Headteacher','Deputy Head Teacher','HOD Department'),inv:R('Admin','Headteacher','Deputy Head Teacher','Accountant','HOD Department'),
+ bill:R('Admin','Headteacher','Deputy Head Teacher','Accountant'),hw:R('Admin','Class Teacher','Subject Teacher')};
+const can=k=>ROLES[k].includes(db.activeRole);
+const num=v=>Number(v)||0, money=v=>formatKES(v);
+let invDraft=null, hlInv=null, FORMS={};
+
+/* ---- navigation ---- */
+const _nav=getNavItemsForRole;
+getNavItemsForRole=function(role){
+  const n=_nav(role).slice(), has=id=>n.some(i=>i.id===id), at=n.findIndex(i=>i.id==='profile');
+  const add=(id,l,ic)=>{if(!has(id))n.splice(at>=0?at:n.length,0,{id,label:l,icon:ic});};
+  if(['Admin','Headteacher','Deputy Head Teacher','HOD Department'].includes(role))add('departments','Departments','🏛️');
+  if(role==='Admin')add('inventory','Inventory & Invoices','📦');
+  if(['Admin','Class Teacher','Subject Teacher','Parent'].includes(role))add('homework','Homework','📚');
+  return n;
+};
+const _page=renderActivePage;
+renderActivePage=function(){
+  if(activeTab==='inventory'&&can('inv'))return invPage();
+  if(activeTab==='homework')return hwPage();
+  if(activeTab==='departments')return depPage();
+  return _page();
+};
+
+/* ---- form helpers ---- */
+function fld(f,v){const val=v[f.n]??f.d??'';
+  if(f.t==='select')return `<div class="field"><label>${f.l}</label><select name="${f.n}">${f.o.map(o=>`<option ${o==val?'selected':''}>${esc(o)}</option>`).join('')}</select></div>`;
+  if(f.t==='textarea')return `<div class="field" style="grid-column:1/-1"><label>${f.l}</label><textarea name="${f.n}" rows="3">${esc(val)}</textarea></div>`;
+  return `<div class="field"><label>${f.l}</label><input type="${f.t||'text'}" name="${f.n}" value="${esc(val)}" ${f.r?'required':''}></div>`;}
+function formModal(title,fields,vals,key,save){FORMS[key]=save;
+  openModal(title,`<form data-xform="${key}" class="form-grid">${fields.map(f=>fld(f,vals||{})).join('')}
+  <div class="modal-actions" style="grid-column:1/-1"><button type="button" class="btn" data-close>Cancel</button><button class="btn primary">Save</button></div></form>`);}
+document.addEventListener('submit',e=>{const f=e.target.closest&&e.target.closest('form[data-xform]');if(!f)return;e.preventDefault();
+  const o={};new FormData(f).forEach((v,k)=>o[k]=String(v).trim());const fn=FORMS[f.dataset.xform];if(fn&&fn(o)!==false){saveDB();closeModal();render();}});
+const viewModal=(t,rows)=>openModal(t,`<div style="font-size:13px;line-height:1.9">${rows.map(r=>`<div><b>${r[0]}:</b> ${esc(r[1]||'—')}</div>`).join('')}</div><div class="modal-actions"><button class="btn primary" data-close>Close</button></div>`);
+const toolbar=(title,btns)=>`<div class="card no-print"><div class="card-header"><h3 class="card-title">${title}</h3><div style="display:flex;gap:8px;flex-wrap:wrap">${btns}</div></div></div>`;
+const xb=(a,l,id='',c='btn primary')=>`<button type="button" class="${c}" data-x="${a}" data-id="${esc(id)}">${l}</button>`;
+
+/* ---- students ---- */
+const stuFields=()=>[{n:'name',l:'Student Name',r:1},{n:'admNo',l:'Admission Number',r:1},{n:'dob',l:'Date of Birth',t:'date'},{n:'gender',l:'Gender',t:'select',o:['Male','Female']},
+ {n:'stream',l:'Grade & Class',t:'select',o:STREAMS},{n:'parentName',l:'Parent/Guardian Name',r:1},{n:'parentPhone',l:'Parent/Guardian Contact'},{n:'parentEmail',l:'Parent Email',t:'email'},
+ {n:'address',l:'Address'},{n:'status',l:'Status',t:'select',o:['Active','Disabled']}];
+function stuForm(id){const s=id?db.students.find(x=>x.id===id):null;
+  formModal(s?'Edit Student':'Add New Student',stuFields(),s||{status:'Active'},'stu',d=>{
+    if(db.students.some(x=>x.admNo.toLowerCase()===d.admNo.toLowerCase()&&(!s||x.id!==s.id))){showToast('Admission number already exists.');return false;}
+    if(s)Object.assign(s,d);else db.students.push(Object.assign({id:uid('stu-'),billed:0,paid:0},d));showToast('Student saved.');});}
+const _stu=renderStudentsPage;
+renderStudentsPage=function(){let h=_stu();
+  h=h.replace('<th>Fee Balance</th>','<th>Fee Balance</th><th>Actions</th>').replace(/<tr>(\s*<td><strong>([^<]+)<\/strong><\/td>[\s\S]*?)<\/tr>/g,(m,b,adm)=>{
+    const s=db.students.find(x=>x.admNo===adm.replace(/&amp;/g,'&'));if(!s)return m;
+    return `<tr>${b}<td style="white-space:nowrap">${xb('viewStu','View',s.id,'btn sm')} ${can('stu')?xb('editStu','Edit',s.id,'btn sm'):''}</td></tr>`;});
+  return (can('stu')?toolbar('Student Registration',xb('addStu','＋ Add New Student')):'')+h;};
+
+/* ---- teachers ---- */
+const teaFields=()=>[{n:'name',l:'Teacher Name',r:1},{n:'staffId',l:'Staff ID',r:1},{n:'phone',l:'Phone'},{n:'email',l:'Email',t:'email'},
+ {n:'role',l:'Designation',t:'select',o:['Class Teacher','Subject Teacher','Academic Master','HOD Department','Deputy Head Teacher','Headteacher','Accountant']},
+ {n:'department',l:'Department',t:'select',o:['Academic',...db.departments.map(d=>d.name)].filter((v,i,a)=>a.indexOf(v)===i)},{n:'subject',l:'Assigned Subjects'},{n:'classes',l:'Classes Assigned (comma separated)'},
+ {n:'joined',l:'Date of Joining',t:'date'},{n:'status',l:'Employment Status',t:'select',o:['Active','On Leave','Disabled']}];
+function teaForm(id){const s=id?db.staff.find(x=>x.id===id):null;const v=s?Object.assign({},s,{classes:(s.classes||[]).join(', ')}):{status:'Active'};
+  formModal(s?'Edit Teacher':'Add New Teacher',teaFields(),v,'tea',d=>{d.classes=d.classes?d.classes.split(',').map(x=>x.trim()).filter(Boolean):[];
+    if(s)Object.assign(s,d);else db.staff.push(Object.assign({id:uid('st-'),category:'Teaching'},d));showToast('Teacher saved.');});}
+const _staff=renderStaffPage;
+renderStaffPage=function(){return (can('tea')?toolbar('Teacher Registration',xb('addTea','＋ Add New Teacher')+xb('listTea','View / Edit Teachers','','btn')):'')+_staff();};
+
+/* ---- departments ---- */
+function depForm(id){const s=id?db.departments.find(x=>x.id===id):null;
+  formModal(s?'Edit Department':'Add New Department',[{n:'name',l:'Department Name',r:1},{n:'code',l:'Department Code',r:1},{n:'hod',l:'Head of Department',t:'select',o:['—',...db.staff.map(x=>x.name)]},
+   {n:'status',l:'Status',t:'select',o:['Active','Disabled']},{n:'members',l:'Members (comma separated)',t:'textarea'},{n:'description',l:'Description',t:'textarea'}],s||{status:'Active'},'dep',d=>{
+    if(s)Object.assign(s,d);else db.departments.push(Object.assign({id:uid('dep-')},d));showToast('Department saved.');});}
+function depPage(){const edit=can('dep');
+  return toolbar('Departments',edit?xb('addDep','＋ Add New Department'):'')+`<div class="card"><div class="table-wrap"><table><thead><tr><th>Code</th><th>Name</th><th>HOD</th><th>Members</th><th>Status</th><th>Actions</th></tr></thead><tbody>
+  ${db.departments.map(d=>`<tr><td><b>${esc(d.code)}</b></td><td>${esc(d.name)}</td><td>${esc(d.hod)}</td><td>${esc(d.members)}</td><td><span class="badge ${d.status==='Active'?'ok':'warn'}">${esc(d.status)}</span></td><td>${xb('viewDep','View',d.id,'btn sm')} ${edit?xb('editDep','Edit',d.id,'btn sm'):''}</td></tr>`).join('')||'<tr><td colspan="6" class="muted">No departments yet.</td></tr>'}</tbody></table></div></div>`;}
+
+/* ---- inventory + invoices ---- */
+const invTotals=i=>{const sub=i.lines.reduce((a,l)=>a+num(l.q)*num(l.p),0),disc=Math.min(num(i.discount),sub),tax=(sub-disc)*num(i.vatPct)/100;return{sub,disc,tax,total:sub-disc+tax};};
+const stBadge=s=>s==='Paid'?'ok':s==='Part Paid'?'info':'warn';
+function invPage(){
+  if(invDraft)return invEditor();
+  const b=can('bill'),T=db.invoices.map(i=>({i,t:invTotals(i)})),open=T.filter(x=>x.i.status!=='Paid');
+  const k=(l,v)=>`<div class="card" style="flex:1;min-width:150px"><div class="muted" style="font-size:12px">${l}</div><div style="font-size:20px;font-weight:800">${v}</div></div>`;
+  return `<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px">${k('Inventory Items',db.inventory.length)}${k('Stock Value',money(db.inventory.reduce((a,x)=>a+num(x.qty)*num(x.cost),0)))}
+  ${b?k('Invoices Issued',db.invoices.length)+k('Total Billed',money(T.reduce((a,x)=>a+x.t.total,0)))+k('Outstanding',money(open.reduce((a,x)=>a+x.t.total-(x.i.status==='Part Paid'?num(x.i.paidAmt):0),0)))+k('Unpaid Invoices',db.invoices.filter(i=>i.status==='Unpaid').length):''}</div>
+  ${toolbar('Inventory',xb('addItem','＋ Add Stock / Inventory Item')+(b?xb('newInv','🧾 New Invoice'):''))}
+  <div class="card"><div class="card-header"><h3 class="card-title">Stock</h3></div><div class="table-wrap"><table><thead><tr><th>Item</th><th>Category</th><th>Qty</th><th>Unit Cost</th><th>Value</th><th>Actions</th></tr></thead><tbody>
+  ${db.inventory.map(x=>`<tr><td>${esc(x.name)}</td><td>${esc(x.category)}</td><td>${num(x.qty)}</td><td>${money(num(x.cost))}</td><td>${money(num(x.qty)*num(x.cost))}</td><td>${xb('editItem','Edit',x.id,'btn sm')} ${xb('delItem','Delete',x.id,'btn sm')}</td></tr>`).join('')||'<tr><td colspan="6" class="muted">No stock items yet.</td></tr>'}</tbody></table></div></div>
+  ${b?`<div class="card"><div class="card-header"><h3 class="card-title">Saved Invoices Register</h3></div><div class="table-wrap"><table><thead><tr><th>Invoice No</th><th>Billed To</th><th>Issued</th><th>Due</th><th>Total</th><th>Status</th><th>Actions</th></tr></thead><tbody>
+  ${T.map(({i,t})=>`<tr style="${i.id===hlInv?'background:#ccfbf1':''}"><td><b>${esc(i.no)}</b></td><td>${esc(i.billedTo)}</td><td>${esc(i.issue)}</td><td>${esc(i.due)}</td><td>${money(t.total)}</td><td><span class="badge ${stBadge(i.status)}">${i.status}</span></td>
+  <td style="white-space:nowrap">${xb('editInv','View/Edit',i.id,'btn sm')} ${xb('printInv','Print PDF',i.id,'btn sm')} ${i.status!=='Paid'?xb('paidInv','Mark Paid',i.id,'btn sm'):''} ${xb('delInv','Delete',i.id,'btn sm')}</td></tr>`).join('')||'<tr><td colspan="7" class="muted">No invoices saved yet.</td></tr>'}</tbody></table></div></div>`:''}`;}
+function itemForm(id){const s=id?db.inventory.find(x=>x.id===id):null;
+  formModal(s?'Edit Item':'Add Stock / Inventory Item',[{n:'name',l:'Item Name',r:1},{n:'category',l:'Category'},{n:'qty',l:'Quantity',t:'number',r:1},{n:'cost',l:'Unit Price (KES)',t:'number',r:1}],s||{},'item',d=>{
+    if(s)Object.assign(s,d);else db.inventory.push(Object.assign({id:uid('inv-')},d));showToast('Item saved.');});}
+function nextInvNo(){const y=new Date().getFullYear();const n=db.invoices.filter(i=>String(i.no).startsWith('INV-'+y)).map(i=>num(String(i.no).split('-')[2])).reduce((a,b)=>Math.max(a,b),0)+1;return `INV-${y}-${String(n).padStart(3,'0')}`;}
+function newInv(id){const src=id&&db.invoices.find(i=>i.id===id);const today=new Date().toISOString().slice(0,10),due=new Date(Date.now()+14*864e5).toISOString().slice(0,10);
+  invDraft=src?JSON.parse(JSON.stringify(src)):{id:null,no:nextInvNo(),school:db.schoolName||'Ecole+ Kenya',schoolInfo:'Nairobi, Kenya • info@ecoleplus.ke',issue:today,due,billedTo:'',billedAddr:'',lines:[{d:'',q:1,p:0}],discount:0,vatPct:0,status:'Unpaid',paidAmt:0,instr:'Pay via M-Pesa Paybill or bank deposit. Use the invoice number as reference.'};render();}
+function invDoc(i){const t=invTotals(i);return `<div class="inv-doc" style="font-family:Arial,sans-serif;font-size:12.5px;border:1px solid #cbd5e1;background:#fff;color:#0f172a">
+  <div style="background:#0d9488;color:#fff;padding:14px 18px;display:flex;justify-content:space-between"><div><div style="font-size:20px;font-weight:800">${esc(i.school)}</div><div style="font-size:11px">${esc(i.schoolInfo)}</div></div><div style="text-align:right"><div style="font-size:18px;font-weight:800">INVOICE</div><div>${esc(i.no)}</div><div style="font-size:11px">${esc(i.status)}</div></div></div>
+  <div style="padding:14px 18px"><div style="display:flex;justify-content:space-between;gap:12px"><div><b>Billed To</b><br>${esc(i.billedTo)||'—'}<br>${esc(i.billedAddr)}</div><div style="text-align:right">Issued: ${esc(i.issue)}<br>Due: ${esc(i.due)}</div></div>
+  <table style="width:100%;border-collapse:collapse;margin:12px 0"><thead><tr style="background:#f1f5f9;text-align:left"><th style="padding:6px">Description</th><th>Qty</th><th>Unit</th><th style="text-align:right">Amount</th></tr></thead><tbody>
+  ${i.lines.filter(l=>l.d||num(l.p)).map(l=>`<tr style="border-bottom:1px solid #e2e8f0"><td style="padding:6px">${esc(l.d)}</td><td>${num(l.q)}</td><td>${money(num(l.p))}</td><td style="text-align:right">${money(num(l.q)*num(l.p))}</td></tr>`).join('')}</tbody></table>
+  <div style="text-align:right;line-height:1.7">Subtotal: ${money(t.sub)}<br>Discount: −${money(t.disc)}<br>VAT/Levy (${num(i.vatPct)}%): ${money(t.tax)}<br><b style="font-size:15px">Grand Total: ${money(t.total)}</b>${i.status==='Part Paid'?`<br>Paid: ${money(num(i.paidAmt))} • Balance: ${money(t.total-num(i.paidAmt))}`:''}</div>
+  <div style="margin-top:12px"><b>Payment Instructions</b><br>${esc(i.instr)}</div><div style="text-align:right;margin-top:10px">${renderStampHTML('ACCOUNTS & FINANCE OFFICE')}</div></div></div>`;}
+function invEditor(){const d=invDraft,F=(l,n,t='text',w='')=>`<div class="field" ${w}><label>${l}</label><input type="${t}" data-inv="${n}" value="${esc(d[n])}"></div>`;
+  return `<div class="no-print" style="margin-bottom:10px">${xb('cancelInv','← Back to Inventory','','btn')}</div><div class="grid-2"><div class="card no-print"><div class="card-header"><h3 class="card-title">${d.id?'Edit':'New'} Invoice</h3></div><div class="form-grid" id="invEditor">
+  ${F('Invoice No','no')}${F('School Name','school')}${F('School Details','schoolInfo','text','style="grid-column:1/-1"')}${F('Issue Date','issue','date')}${F('Due Date','due','date')}${F('Billed To','billedTo')}${F('Billed-to Details','billedAddr')}
+  <div class="field"><label>Quick pick: student</label><select data-pick="stu"><option value="">—</option>${db.students.slice(0,400).map(s=>`<option value="${s.id}">${esc(s.name)} (${esc(s.admNo)})</option>`).join('')}</select></div>
+  <div class="field"><label>Quick add: inventory item</label><select data-pick="item"><option value="">—</option>${db.inventory.map(x=>`<option value="${x.id}">${esc(x.name)} – ${money(num(x.cost))}</option>`).join('')}</select></div>
+  <div id="invLines" style="grid-column:1/-1">${invLines()}</div><div style="grid-column:1/-1">${xb('addLine','＋ Add Line','','btn sm')}</div>
+  ${F('Discount (KES)','discount','number')}${F('VAT / Levy %','vatPct','number')}
+  <div class="field"><label>Payment Status</label><select data-inv="status">${['Unpaid','Part Paid','Paid'].map(s=>`<option ${d.status===s?'selected':''}>${s}</option>`).join('')}</select></div>${F('Amount Paid (if part paid)','paidAmt','number')}
+  <div class="field" style="grid-column:1/-1"><label>Payment Instructions</label><textarea data-inv="instr" rows="2">${esc(d.instr)}</textarea></div></div>
+  <div class="modal-actions">${xb('cancelInv','Cancel','','btn')}${xb('saveInv','Save Invoice')}</div></div>
+  <div><div id="invPreview">${invDoc(d)}</div><div class="no-print" style="margin-top:8px">${xb('printDraft','🖨️ Print / Save PDF','','btn')}</div></div></div>`;}
+const invLines=()=>invDraft.lines.map((l,x)=>`<div style="display:grid;grid-template-columns:3fr 70px 100px 28px;gap:6px;margin-bottom:6px"><input placeholder="Description" data-line="${x}.d" value="${esc(l.d)}"><input type="number" data-line="${x}.q" value="${esc(l.q)}"><input type="number" data-line="${x}.p" value="${esc(l.p)}"><button type="button" class="btn sm" data-x="delLine" data-id="${x}">✕</button></div>`).join('');
+const refreshInv=()=>{const p=document.getElementById('invPreview');if(p)p.innerHTML=invDoc(invDraft);};
+document.addEventListener('input',e=>{if(!invDraft)return;const t=e.target;
+  if(t.dataset.inv){invDraft[t.dataset.inv]=t.type==='number'?num(t.value):t.value;refreshInv();}
+  if(t.dataset.line){const [x,k]=t.dataset.line.split('.');invDraft.lines[x][k]=k==='d'?t.value:num(t.value);refreshInv();}});
+document.addEventListener('change',e=>{const t=e.target;if(!invDraft)return;
+  if(t.dataset.inv==='status'){invDraft.status=t.value;refreshInv();}
+  if(t.dataset.pick==='stu'){const s=db.students.find(x=>x.id===t.value);if(s){invDraft.billedTo=s.parentName+' (parent of '+s.name+')';invDraft.billedAddr=s.admNo+' • '+s.stream;render();}}
+  if(t.dataset.pick==='item'){const it=db.inventory.find(x=>x.id===t.value);if(it){invDraft.lines=invDraft.lines.filter(l=>l.d||num(l.p));invDraft.lines.push({d:it.name,q:1,p:num(it.cost)});render();}}});
+function printDoc(html){let a=document.getElementById('printArea');if(!a){a=document.createElement('div');a.id='printArea';document.body.appendChild(a);}a.innerHTML=html;document.body.classList.add('printing-doc');
+  const done=()=>{document.body.classList.remove('printing-doc');window.removeEventListener('afterprint',done);};window.addEventListener('afterprint',done);window.print();}
+function saveInv(){const d=invDraft;const ok=d.lines.filter(l=>String(l.d).trim()&&num(l.q)>0&&num(l.p)>=0);
+  if(!ok.length){showToast('Add at least one valid line item (description, quantity, price).');return;}
+  d.lines=ok;if(!d.billedTo.trim()){showToast('Enter who the invoice is billed to.');return;}
+  if(d.id){const x=db.invoices.findIndex(i=>i.id===d.id);db.invoices[x]=d;}else{d.id=uid('inv-');db.invoices.push(d);}
+  hlInv=d.id;invDraft=null;saveDB();render();showToast('Invoice '+d.no+' saved.');setTimeout(()=>{hlInv=null;if(activeTab==='inventory'&&!invDraft)render();},4000);}
+
+/* ---- homework ---- */
+const hwStream=()=>{const s=db.students.find(x=>x.id===db.activeParentStudentId)||db.students[0];return s;};
+function hwForm(id){const s=id?db.homework.find(x=>x.id===id):null;const me=(getActiveUserProfile()||{}).fullName||'Admin';const subs=[...new Set([...(db.staff||[]).map(x=>x.subject).filter(Boolean),'Mathematics','English','Kiswahili','Science'])];
+  FORMS.hw=d=>{const f=document.getElementById('hwFile').files[0];const fin=()=>{if(s)Object.assign(s,d);else db.homework.push(Object.assign({id:uid('hw-'),teacher:me,done:{}},d));saveDB();closeModal();render();showToast('Homework saved.');};
+    if(f&&f.size<400000){const r=new FileReader();r.onload=()=>{d.fileName=f.name;d.fileData=r.result;fin();};r.readAsDataURL(f);}else fin();return false;};
+  openModal(s?'Edit Homework':'Create Homework',`<form data-xform="hw" class="form-grid">${[{n:'stream',l:'Grade & Class',t:'select',o:STREAMS},{n:'subject',l:'Learning Area / Subject',t:'select',o:subs},{n:'title',l:'Title',r:1},{n:'issued',l:'Issue Date',t:'date',r:1},{n:'due',l:'Due Date',t:'date',r:1},{n:'instructions',l:'Instructions',t:'textarea'}].map(f=>fld(f,s||{issued:new Date().toISOString().slice(0,10)})).join('')}
+  <div class="field" style="grid-column:1/-1"><label>Attachment (optional, under 400KB)</label><input type="file" id="hwFile"></div><div class="modal-actions" style="grid-column:1/-1"><button type="button" class="btn" data-close>Cancel</button><button class="btn primary">Save</button></div></form>`);}
+function hwPage(){const teach=can('hw'),st=hwStream(),me=(getActiveUserProfile()||{}).fullName;
+  const list=db.homework.filter(h=>teach||(st&&h.stream===st.stream)).sort((a,b)=>String(b.due).localeCompare(String(a.due)));
+  return toolbar('Homework',teach?xb('addHw','＋ Create Homework'):`Showing homework for ${esc(st?st.stream:'—')}`)+`<div class="card"><div class="table-wrap"><table><thead><tr><th>Title</th><th>Class</th><th>Subject</th><th>Teacher</th><th>Issued</th><th>Due</th><th>${teach?'Done':'Status'}</th><th>Actions</th></tr></thead><tbody>
+  ${list.map(h=>{const done=st&&h.done&&h.done[st.id];const own=db.activeRole==='Admin'||h.teacher===me;return `<tr><td><b>${esc(h.title)}</b><div class="muted" style="font-size:12px">${esc(h.instructions)}</div>${h.fileData?`<a href="${h.fileData}" download="${esc(h.fileName)}">📎 ${esc(h.fileName)}</a>`:''}</td><td>${esc(h.stream)}</td><td>${esc(h.subject)}</td><td>${esc(h.teacher)}</td><td>${esc(h.issued)}</td><td>${esc(h.due)}</td>
+  <td>${teach?Object.keys(h.done||{}).filter(k=>h.done[k]).length+' marked':`<span class="badge ${done?'ok':'warn'}">${done?'Completed':'Pending'}</span>`}</td>
+  <td>${teach?(own?xb('editHw','Edit',h.id,'btn sm')+' '+xb('delHw','Delete',h.id,'btn sm'):''):xb('toggleHw',done?'Mark Pending':'Mark Done',h.id,'btn sm')}</td></tr>`;}).join('')||'<tr><td colspan="8" class="muted">No homework yet.</td></tr>'}</tbody></table></div></div>`;}
+
+/* ---- digital ID ---- */
+const C39={'0':'nnnwwnwnn','1':'wnnwnnnnw','2':'nnwwnnnnw','3':'wnwwnnnnn','4':'nnnwwnnnw','5':'wnnwwnnnn','6':'nnwwwnnnn','7':'nnnwnnwnw','8':'wnnwnnwnn','9':'nnwwnnwnn','A':'wnnnnwnnw','B':'nnwnnwnnw','C':'wnwnnwnnn','D':'nnnnwwnnw','E':'wnnnwwnnn','F':'nnwnwwnnn','G':'nnnnnwwnw','H':'wnnnnwwnn','I':'nnwnnwwnn','J':'nnnnwwwnn','K':'wnnnnnnww','L':'nnwnnnnww','M':'wnwnnnnwn','N':'nnnnwnnww','O':'wnnnwnnwn','P':'nnwnwnnwn','Q':'nnnnnnwww','R':'wnnnnnwwn','S':'nnwnnnwwn','T':'nnnnwnwwn','U':'wwnnnnnnw','V':'nwwnnnnnw','W':'wwwnnnnnn','X':'nwnnwnnnw','Y':'wwnnwnnnn','Z':'nwwnwnnnn','-':'nwnnnnwnw','*':'nwnnwnwnn'};
+function barcode(txt,len){let y=0,r='';const s='*'+String(txt).toUpperCase().replace(/[^0-9A-Z-]/g,'')+'*';
+  for(const ch of s){const p=C39[ch];for(let i=0;i<9;i++){const w=p[i]==='w'?3:1;if(i%2===0)r+=`<rect x="0" y="${y}" width="40" height="${w}" fill="#111"/>`;y+=w;}y+=1;}
+  return `<svg viewBox="0 0 40 ${y}" width="34" height="${len}" preserveAspectRatio="none">${r}</svg>`;}
+function idCard(){const par=db.activeRole==='Parent',prof=getActiveUserProfile()||{};let o;
+  if(par){const s=hwStream()||{};o={t:'Student Digital ID Card & Profile',key:'stu_'+s.id,id:s.id||'',no:s.admNo,name:s.name,l1:'Grade',v1:s.stream,l2:'Date of Birth',v2:s.dob,code:s.admNo,on:s.status!=='Disabled',c:['#1d4ed8','#0d9488','#38bdf8']};}
+  else{const st=db.staff.find(x=>x.name===prof.fullName)||{};o={t:'Staff Digital ID Card & Profile',key:'acct_'+prof.username,id:st.staffId||prof.refId||'',no:'',name:prof.fullName,l1:'Designation',v1:prof.role||db.activeRole,l2:'Joined',v2:st.joined||'—',code:st.staffId||prof.refId||prof.username,on:prof.enabled!==false&&st.status!=='Disabled',c:['#ea580c','#dc2626','#eab308']};}
+  const ph=db.photos[o.key],[a,b,c]=o.c;
+  const card=`<div class="id-card" style="width:520px;max-width:100%;height:300px;position:relative;overflow:hidden;border-radius:14px;background:#e5e7eb;border:1px solid #cbd5e1;font-family:Arial,sans-serif;color:#0f172a">
+  <svg style="position:absolute;inset:0" width="100%" height="100%" viewBox="0 0 520 300" preserveAspectRatio="none"><polygon points="0,0 120,0 60,90" fill="#d1d5db"/><polygon points="120,0 260,0 180,110" fill="#f3f4f6"/><polygon points="260,0 400,30 300,120" fill="#d9dce1"/><polygon points="400,30 520,0 520,110" fill="#eceef1"/>
+  <path d="M0 230 C120 190 220 270 340 225 S480 210 520 235 V300 H0Z" fill="${c}" opacity=".55"/><path d="M0 250 C110 220 230 290 350 245 S470 240 520 260 V300 H0Z" fill="${b}" opacity=".8"/><path d="M0 272 C130 250 240 300 370 270 S480 270 520 282 V300 H0Z" fill="${a}"/></svg>
+  <div style="position:absolute;right:14px;top:10px;display:flex;align-items:center;gap:6px"><svg width="30" height="30" viewBox="0 0 30 30"><circle cx="15" cy="15" r="13" fill="none" stroke="${b}" stroke-width="2"/><ellipse cx="15" cy="15" rx="6" ry="13" fill="none" stroke="${a}" stroke-width="1.5"/><path d="M2 15h26M4 8h22M4 22h22" stroke="${a}" fill="none"/></svg><b style="font-size:16px;color:${a}">Ecole+</b></div>
+  <div style="position:absolute;left:16px;top:44px;width:130px;height:160px;border:3px solid #fff;border-radius:8px;background:#cbd5e1 ${ph?`url(${ph}) center/cover`:''};box-shadow:0 2px 6px rgba(0,0,0,.25)">${ph?'':'<div style="text-align:center;margin-top:60px;font-size:12px;color:#475569">No photo</div>'}</div>
+  <div style="position:absolute;left:164px;top:50px;right:70px;font-size:12.5px;line-height:1.75"><div style="font-size:18px;font-weight:800;color:${a}">${esc(o.name)}</div>
+  <div><b>ID:</b> ${esc(o.id)}</div>${o.no?`<div><b>Adm No:</b> ${esc(o.no)}</div>`:''}<div><b>${o.l1}:</b> ${esc(o.v1)}</div><div><b>${o.l2}:</b> ${esc(o.v2||'—')}</div>${par?'':'<div><b>Expiry:</b> 31 Dec 2027</div>'}
+  <div style="margin-top:4px"><span style="background:${o.on?'#16a34a':'#b91c1c'};color:#fff;padding:2px 10px;border-radius:10px;font-size:11px;font-weight:700">${o.on?'ACTIVE':'DISABLED'}</span></div></div>
+  <div style="position:absolute;right:16px;top:54px;height:140px">${barcode(o.code,140)}</div></div>`;
+  return {o,html:`<div class="card" id="idCardWrap"><div class="card-header"><h3 class="card-title">${o.t}</h3><div class="no-print" style="display:flex;gap:8px"><label class="btn sm" style="cursor:pointer">Upload Photo<input type="file" id="idPhotoInput" accept="image/*" data-key="${esc(o.key)}" style="display:none"></label>${xb('printId','Print ID Card','','btn sm primary')}</div></div>${card}</div>`,card};}
+let _idCache='';
+const _prof=renderProfilePage;
+renderProfilePage=function(){const x=idCard();_idCache=x.card;let h=_prof();
+  const i=h.indexOf('<form id="myProfilePasswordForm"');if(i>0){const j=h.indexOf('</form>',i)+7;h=h.slice(0,i)+'<details><summary style="cursor:pointer;font-weight:700;margin:6px 0">Change password</summary>'+h.slice(i,j)+'</details>'+h.slice(j);}
+  return x.html+h;};
+document.addEventListener('change',e=>{const t=e.target;if(t.id!=='idPhotoInput'||!t.files[0])return;const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>{const c=document.createElement('canvas'),k=Math.min(1,320/Math.max(im.width,im.height));c.width=im.width*k;c.height=im.height*k;c.getContext('2d').drawImage(im,0,0,c.width,c.height);db.photos[t.dataset.key]=c.toDataURL('image/jpeg',.8);saveDB();render();showToast('Photo saved.');};im.src=r.result;};r.readAsDataURL(t.files[0]);});
+
+/* ---- admin data management ---- */
+const CLR={students:['Student records',()=>db.students=[]],staff:['Staff records',()=>db.staff=[]],departments:['Department records',()=>db.departments=[]],inventory:['Inventory records',()=>db.inventory=[]],invoices:['Invoice records',()=>db.invoices=[]],homework:['Homework records',()=>db.homework=[]],notifications:['Notifications',()=>db.notifications=[]]};
+const _dash=renderDashboard;
+renderDashboard=function(){let h=_dash();if(db.activeRole!=='Admin')return h;
+  return h+`<div class="card no-print"><div class="card-header"><h3 class="card-title">Data Management (Admin)</h3></div><p class="muted" style="font-size:12.5px;margin-top:0">Clears operational records only. Login accounts, settings and application code are kept.</p><div style="display:flex;gap:8px;flex-wrap:wrap">${Object.entries(CLR).map(([k,v])=>xb('clear',v[0],k,'btn sm')).join('')}${xb('clear','Clear ALL Application Data','all','btn sm')}</div></div>`;};
+
+/* ---- stamp: hidden on screen, shown only in print; parents get approving-office stamp ---- */
+const _so=getStampOfficeTitle;getStampOfficeTitle=function(){return db.activeRole==='Parent'?'OFFICE OF THE HEADTEACHER':_so();};
+const st=document.createElement('style');st.textContent=`.official-stamp{display:none!important}@media print{.official-stamp{display:inline-block!important}}#printArea{display:none}
+@media print{body.printing-doc #app,body.printing-doc .modal-backdrop{display:none!important}body.printing-doc #printArea{display:block}.id-card{margin:20px}}`;document.head.appendChild(st);
+
+/* ---- click actions ---- */
+document.addEventListener('click',e=>{const b=e.target.closest('[data-x]');if(!b)return;const id=b.dataset.id,A=b.dataset.x;
+  const by=(arr)=>db[arr].find(x=>x.id===id);
+  switch(A){
+  case 'addStu':stuForm();break;case 'editStu':stuForm(id);break;
+  case 'viewStu':{const s=by('students');viewModal('Student Record',[['Name',s.name],['Adm No',s.admNo],['DOB',s.dob],['Gender',s.gender],['Class',s.stream],['Parent/Guardian',s.parentName],['Contact',s.parentPhone],['Address',s.address],['Status',s.status||'Active']]);break;}
+  case 'addTea':teaForm();break;case 'editTea':teaForm(id);break;
+  case 'viewTea':{const s=by('staff');viewModal('Teacher Record',[['Name',s.name],['Staff ID',s.staffId],['Phone',s.phone],['Email',s.email],['Designation',s.role],['Department',s.department],['Subjects',s.subject],['Classes',(s.classes||[]).join(', ')],['Joined',s.joined],['Status',s.status]]);break;}
+  case 'listTea':openModal('Teachers',`<div style="max-height:60vh;overflow:auto"><table><tbody>${db.staff.map(s=>`<tr><td>${esc(s.name)}<div class="muted" style="font-size:11px">${esc(s.role)}</div></td><td>${xb('viewTea','View',s.id,'btn sm')} ${xb('editTea','Edit',s.id,'btn sm')}</td></tr>`).join('')}</tbody></table></div><div class="modal-actions"><button class="btn" data-close>Close</button></div>`);break;
+  case 'addDep':depForm();break;case 'editDep':depForm(id);break;
+  case 'viewDep':{const d=by('departments');viewModal('Department',[['Name',d.name],['Code',d.code],['HOD',d.hod],['Members',d.members],['Status',d.status],['Description',d.description]]);break;}
+  case 'addItem':itemForm();break;case 'editItem':itemForm(id);break;
+  case 'delItem':if(confirm('Delete this item?')){db.inventory=db.inventory.filter(x=>x.id!==id);saveDB();render();}break;
+  case 'newInv':newInv();break;case 'editInv':newInv(id);break;case 'cancelInv':invDraft=null;render();break;
+  case 'addLine':invDraft.lines.push({d:'',q:1,p:0});document.getElementById('invLines').innerHTML=invLines();refreshInv();break;
+  case 'delLine':invDraft.lines.splice(num(id),1);if(!invDraft.lines.length)invDraft.lines.push({d:'',q:1,p:0});document.getElementById('invLines').innerHTML=invLines();refreshInv();break;
+  case 'saveInv':saveInv();break;case 'printDraft':printDoc(invDoc(invDraft));break;case 'printInv':printDoc(invDoc(by('invoices')));break;
+  case 'paidInv':{const i=by('invoices');i.status='Paid';saveDB();render();showToast(i.no+' marked paid.');break;}
+  case 'delInv':if(confirm('Delete this invoice?')){db.invoices=db.invoices.filter(x=>x.id!==id);saveDB();render();}break;
+  case 'addHw':hwForm();break;case 'editHw':hwForm(id);break;
+  case 'delHw':if(confirm('Delete this homework?')){db.homework=db.homework.filter(x=>x.id!==id);saveDB();render();}break;
+  case 'toggleHw':{const h=by('homework'),s=hwStream();h.done=h.done||{};h.done[s.id]=!h.done[s.id];saveDB();render();break;}
+  case 'printId':printDoc(_idCache);break;
+  case 'clear':{const all=id==='all',name=all?'ALL operational data':CLR[id][0];
+    if(!confirm('Clear '+name+'? This cannot be undone.'))break;if(all&&!confirm('Final confirmation: permanently clear ALL operational records?'))break;
+    (all?Object.keys(CLR):[id]).forEach(k=>CLR[k][1]());saveDB();render();showToast(name+' cleared.');break;}}
+});
+render();
+})();
+
   </script>
   <script type="module">
     // Ecole+ Firebase connection (single-file setup)
